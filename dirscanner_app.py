@@ -9,13 +9,14 @@ def load_data():
 
 
 def main():
-    print("run")
+    print("run!")
     st.title("Dir_ Mapper")
     st.write("Explore your folders")
 
     file_tree = load_data()
     if "root_folder" not in st.session_state:
         st.session_state.root_folder = file_tree.iloc[-1]["filename"]
+        st.session_state.breadcrumbs = [st.session_state.root_folder]
     if "current_dir" not in st.session_state:
         st.session_state.current_dir = st.session_state.root_folder
 
@@ -24,15 +25,15 @@ def main():
         file_tree["parent"] == st.session_state.current_dir
     ]
 
-    st.text(f"{st.session_state.current_dir}")
+    # Breadcrumbs > > >
+    st.text(" > ".join(st.session_state.breadcrumbs))
+
+    # Chart
     st.bar_chart(
-        data=current_file_tree.sort_values(by="size", ascending=False),
-        x="filename",
-        y="size",
-        horizontal=True,
-        height=500,
+        data=current_file_tree, x="filename", y="size", horizontal=True, height=500
     )
 
+    # Selectbox for drilldown
     option = st.selectbox(
         "subfolder",
         current_file_tree.loc[current_file_tree["type"] == "folder"],
@@ -40,8 +41,19 @@ def main():
         placeholder="Select subfolder",
     )
 
+    # Action for select box
     if option:
         st.session_state.current_dir = option
+        if option not in st.session_state.breadcrumbs:
+            st.session_state.breadcrumbs.append(option)
+
+    # Action for return button (last folder)
+    if st.button("back"):
+        print(st.session_state.breadcrumbs)
+
+        # st.session_state.breadcrumbs = st.session_state.breadcrumbs[:-1]
+        # st.session_state.current_dir = st.session_state.breadcrumbs[-2]
+        # print(st.session_state.breadcrumbs)
 
 
 if __name__ == "__main__":
